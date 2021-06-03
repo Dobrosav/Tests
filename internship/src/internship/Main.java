@@ -33,7 +33,9 @@ public class Main {
 		driver.get(url);
 		String status=driver.findElement(By.className("State")).getText();
 		String sstatus;
-		if(status.equals("Merged") || status.equals("Closed"))
+		if(status.equals("Open"))
+			sstatus="Opened";
+		else if(status.equals("Merged") || status.equals("Closed"))
 			sstatus= "Accepted";
 		else
 			sstatus="Rejected";
