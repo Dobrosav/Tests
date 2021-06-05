@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Scanner;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 public class Main {
@@ -31,18 +33,24 @@ public class Main {
 
 	private static String status(String url) {
 		ChromeDriver driver = new ChromeDriver();
-		driver.get(url);
-		String status = driver.findElement(By.className("State")).getText();
-		String sstatus;
-		if (status.equals("Open"))
-			sstatus = "Opened";
-		else if (status.equals("Merged"))
-			sstatus = "Accepted";
-		else
-			sstatus = "Rejected";
-//		System.out.println(status);
-		driver.close();
-		return sstatus;
+		try {
+			driver.get(url);
+			String status = driver.findElement(By.className("State")).getText();
+			String sstatus;
+			if (status.equals("Open"))
+				sstatus = "Opened";
+			else if (status.equals("Merged"))
+				sstatus = "Accepted";
+			else
+				sstatus = "Rejected";
+
+			return sstatus;
+		} catch (NoSuchElementException e) {
+			return "Opened";
+		} finally {
+			driver.close();
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -53,18 +61,17 @@ public class Main {
 			FileWriter fw;
 			String[] status = new String[count];
 			status[0] = "Status";
-			for (int i = 1; i < count; i++) {
-				String[] tmp = columnValues.get(i).split(",");
-				if (i == 1000 || i == 1002 || i == 1001) {
-					status[i] = "" + "";
-				} else if (columnValues.get(i).contains("Opened")) {
+			for (int i = 1; i <= count; i++) {
+				String[] tmp = columnValues.get(i).split(",", -1);
+				if (columnValues.get(i).contains("Opened")) {
 					String url = tmp[6];
-					status[i] = status(url);
+					tmp[5] = status(url);
+					status[i] = String.join(",", tmp);
 					System.out.println(status[i]);
 				} else if (tmp.length < 6)
-					status[i] = "";
+					status[i] = columnValues.get(i);
 				else
-					status[i] = tmp[5];
+					status[i] = columnValues.get(i);
 				System.out.println(i);
 				if (i % 200 == 0)
 					Thread.sleep(20000);
